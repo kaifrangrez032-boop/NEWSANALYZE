@@ -71,7 +71,7 @@
     <div id="authModal" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
         <div class="neo-glass p-8 rounded-2xl max-w-md w-full border-t-2 border-terminal-green">
             <h2 class="text-2xl font-black text-white mb-2 tracking-tighter">SYSTEM LOGIN</h2>
-            <p class="text-xs text-slate-400 mb-6 leading-relaxed">Please enter your Gemini API Key. Your key is used locally to power the institutional AI engine.</p>
+            <p class="text-xs text-slate-400 mb-6 leading-relaxed">Enter your Gemini API Key. Note: Direct browser calls may be blocked by CORS on some hosts. Use a local environment for best results.</p>
             <input type="password" id="sessionKey" placeholder="Paste API Key (AIza...)" class="w-full bg-black/50 border border-white/20 rounded-lg p-4 text-white mono text-xs mb-4 outline-none focus:border-terminal-green">
             <button id="activateSystem" class="w-full bg-terminal-green text-black font-black py-4 rounded-lg uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all">
                 Initialize Terminal
@@ -87,7 +87,7 @@
             </div>
             <div>
                 <h1 class="text-3xl font-black text-white leading-none tracking-tighter">REXY<span class="text-emerald-500">.CORE</span></h1>
-                <p class="text-[10px] uppercase tracking-[0.4em] text-emerald-500/60 font-bold mt-2 mono">Institutional Intelligence v4.2</p>
+                <p class="text-[10px] uppercase tracking-[0.4em] text-emerald-500/60 font-bold mt-2 mono">Institutional Intelligence v4.3</p>
             </div>
         </div>
 
@@ -139,21 +139,29 @@
                 </div>
             </div>
 
+            <!-- Error Display -->
+            <div id="errorDisplay" class="hidden neo-glass rounded-2xl p-6 border-l-4 border-rose-500 flex items-start gap-4">
+                <div class="text-rose-500 mt-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white uppercase mb-1">CORS / API Access Blocked</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">The browser blocked the request to Google's API. This is common on hosted pages (like GitHub Pages) due to security policies. <br><br><span class="text-emerald-500 font-bold italic underline">Solution:</span> Open this file directly from your computer (Localhost) or use a proxy server.</p>
+                </div>
+            </div>
+
             <!-- Analysis Sections -->
             <div id="resultsContainer" class="space-y-8 hidden">
-                <!-- Recent Drivers -->
                 <div>
                     <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 mono">Recent Market Drivers</h3>
                     <div id="outputDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                 </div>
 
-                <!-- Upcoming News Radar -->
                 <div>
                     <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 mono">Upcoming Catalyst Radar</h3>
                     <div id="upcomingDisplay" class="grid grid-cols-1 gap-4"></div>
                 </div>
 
-                <!-- Final Verdict -->
                 <div id="masterVerdict" class="neo-glass rounded-[2.5rem] p-10 border-l-[12px] border-emerald-500"></div>
             </div>
         </section>
@@ -164,10 +172,9 @@
         let currentHorizon = "Intraday";
         const MODEL = "gemini-2.5-flash-preview-09-2025"; 
 
-        // Auth Logic
         document.getElementById('activateSystem').onclick = () => {
             const val = document.getElementById('sessionKey').value.trim();
-            if (val.length > 20) {
+            if (val.length > 10) {
                 apiKey = val;
                 document.getElementById('authModal').classList.add('hidden');
                 document.getElementById('mainHeader').classList.remove('blur-sm');
@@ -192,6 +199,7 @@
 
             const res = await fetch(url, {
                 method: 'POST',
+                mode: 'cors', // Crucial for modern browser requests
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
@@ -200,7 +208,7 @@
                 })
             });
             
-            if (!res.ok) throw new Error("API Connection Error");
+            if (!res.ok) throw new Error("CORS_OR_KEY_ERROR");
             const data = await res.json();
             let text = data.candidates[0].content.parts[0].text;
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -210,22 +218,23 @@
         document.getElementById('executeScan').onclick = async () => {
             const asset = document.getElementById('assetPair').value;
             const loading = document.getElementById('loadingState');
+            const errorDisplay = document.getElementById('errorDisplay');
             const resultsContainer = document.getElementById('resultsContainer');
             const display = document.getElementById('outputDisplay');
             const upcomingDisplay = document.getElementById('upcomingDisplay');
             const verdict = document.getElementById('masterVerdict');
 
+            errorDisplay.classList.add('hidden');
             loading.classList.remove('hidden');
             resultsContainer.classList.add('hidden');
-            document.getElementById('statusText').innerText = `ANALYZING ${asset} NODES...`;
+            document.getElementById('statusText').innerText = `SCANNING ${asset} NODES...`;
 
-            const prompt = `Conduct a high-density institutional analysis for ${asset} (${currentHorizon} perspective). 
-            
-            PART 1: Identify 4 most critical recent market drivers (real news/data).
-            PART 2: Analyze the economic calendar for the next 48-72 hours. Identify 3 major upcoming catalysts and explain if they represent a Bullish or Bearish RISK for this specific pair.
-            PART 3: Provide a Master Verdict.
-
-            Return JSON exactly: { 
+            const prompt = `Perform a high-density institutional analysis for ${asset} (${currentHorizon}). 
+            1. Identify 4 recent real-world market drivers.
+            2. Analyze the economic calendar/news for the next 72 hours. List 3 upcoming catalysts.
+            3. For each upcoming catalyst, explicitly state if it is "Bullish" or "Bearish" risk.
+            4. Provide a final trade direction verdict.
+            Return JSON: { 
                 "recent_drivers": [{"title":"", "logic":"", "impact":"Bullish/Bearish"}], 
                 "upcoming_events": [{"event":"", "time_est":"", "impact_prediction":"Bullish/Bearish", "logic":""}],
                 "verdict":{"direction":"BULLISH/BEARISH", "summary":"", "strategic_plan":""} 
@@ -234,50 +243,44 @@
             try {
                 const result = await apiCall(prompt);
                 
-                // Render Drivers
                 display.innerHTML = result.recent_drivers.map(d => `
                     <div class="neo-glass rounded-2xl p-6 border-t-2 ${d.impact.toLowerCase().includes('bull') ? 'border-emerald-500/30' : 'border-rose-500/30'} fade-in">
                         <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-md font-bold text-white tracking-tight">${d.title}</h4>
+                            <h4 class="text-md font-bold text-white">${d.title}</h4>
                             <span class="impact-pill ${d.impact.toLowerCase().includes('bull') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'} mono">${d.impact}</span>
                         </div>
-                        <p class="text-xs text-slate-400 leading-relaxed font-medium">${d.logic}</p>
+                        <p class="text-xs text-slate-400 font-medium">${d.logic}</p>
                     </div>
                 `).join('');
 
-                // Render Upcoming News
                 upcomingDisplay.innerHTML = result.upcoming_events.map(e => `
-                    <div class="neo-glass rounded-xl p-5 border-l-2 ${e.impact_prediction.toLowerCase().includes('bull') ? 'border-emerald-500' : 'border-rose-500'} flex flex-col md:flex-row gap-4 items-start md:items-center">
-                        <div class="min-w-[120px]">
+                    <div class="neo-glass rounded-xl p-5 border-l-2 ${e.impact_prediction.toLowerCase().includes('bull') ? 'border-emerald-500' : 'border-rose-500'} flex flex-col md:flex-row gap-4 items-center">
+                        <div class="min-w-[140px]">
                             <p class="text-[9px] font-black text-slate-500 uppercase mono">${e.time_est}</p>
                             <p class="text-xs font-bold text-white uppercase">${e.event}</p>
                         </div>
                         <div class="flex-1">
-                            <p class="text-xs text-slate-400 leading-relaxed"><span class="font-black text-white uppercase mr-2">[${e.impact_prediction} RISK]</span> ${e.logic}</p>
+                            <p class="text-xs text-slate-400"><span class="font-black text-white uppercase mr-2">[${e.impact_prediction} RISK]</span> ${e.logic}</p>
                         </div>
                     </div>
                 `).join('');
                 
-                // Render Verdict
                 const isBull = result.verdict.direction.toUpperCase().includes('BULL');
                 verdict.className = `neo-glass rounded-[2.5rem] p-10 border-l-[12px] ${isBull ? 'border-emerald-500' : 'border-rose-500'} block fade-in`;
                 verdict.innerHTML = `
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-2 h-2 rounded-full ${isBull ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
-                        <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase">${result.verdict.direction}</h2>
-                    </div>
-                    <p class="text-lg text-slate-300 font-medium mb-8 leading-relaxed">"${result.verdict.summary}"</p>
+                    <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase mb-4">${result.verdict.direction}</h2>
+                    <p class="text-lg text-slate-300 font-medium mb-8">"${result.verdict.summary}"</p>
                     <div class="bg-black/40 p-6 rounded-2xl border border-white/5">
-                        <p class="text-[9px] font-black text-emerald-500 uppercase mb-3 tracking-[0.2em] mono">Execution Protocol</p>
-                        <p class="text-sm text-slate-400 font-medium leading-relaxed">${result.verdict.strategic_plan}</p>
+                        <p class="text-[9px] font-black text-emerald-500 uppercase mb-3 mono">Protocol</p>
+                        <p class="text-sm text-slate-400">${result.verdict.strategic_plan}</p>
                     </div>
                 `;
 
                 resultsContainer.classList.remove('hidden');
                 document.getElementById('statusText').innerText = "SCAN COMPLETE";
             } catch (e) {
-                console.error(e);
-                alert("Terminal Error: Check console for API log.");
+                errorDisplay.classList.remove('hidden');
+                document.getElementById('statusText').innerText = "TERMINAL HALTED";
             } finally {
                 loading.classList.add('hidden');
             }
