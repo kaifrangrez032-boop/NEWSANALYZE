@@ -69,12 +69,16 @@
 
     <!-- Auth Modal -->
     <div id="authModal" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
-        <div class="neo-glass p-8 rounded-2xl max-w-md w-full border-t-2 border-terminal-green">
-            <h2 class="text-2xl font-black text-white mb-2 tracking-tighter">SYSTEM LOGIN</h2>
-            <p class="text-xs text-slate-400 mb-6 leading-relaxed">Enter your Gemini API Key. Note: Direct browser calls may be blocked by CORS on some hosts. Use a local environment for best results.</p>
-            <input type="password" id="sessionKey" placeholder="Paste API Key (AIza...)" class="w-full bg-black/50 border border-white/20 rounded-lg p-4 text-white mono text-xs mb-4 outline-none focus:border-terminal-green">
+        <div class="neo-glass p-8 rounded-2xl max-w-md w-full border-t-2 border-terminal-green text-center">
+            <div class="mb-6">
+                <div class="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-emerald-500 font-black text-2xl mono">R</span>
+                </div>
+                <h2 class="text-2xl font-black text-white tracking-tighter uppercase">Protocol Ready</h2>
+                <p class="text-[10px] text-slate-500 mono mt-1 tracking-widest">ENCRYPTED KEY DETECTED</p>
+            </div>
             <button id="activateSystem" class="w-full bg-terminal-green text-black font-black py-4 rounded-lg uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all">
-                Initialize Terminal
+                Initialize Deep Core
             </button>
         </div>
     </div>
@@ -145,8 +149,8 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 </div>
                 <div>
-                    <h4 class="text-sm font-bold text-white uppercase mb-1">CORS / API Access Blocked</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">The browser blocked the request to Google's API. This is common on hosted pages (like GitHub Pages) due to security policies. <br><br><span class="text-emerald-500 font-bold italic underline">Solution:</span> Open this file directly from your computer (Localhost) or use a proxy server.</p>
+                    <h4 class="text-sm font-bold text-white uppercase mb-1">Critical Terminal Failure</h4>
+                    <p id="errorMessage" class="text-xs text-slate-400 leading-relaxed"></p>
                 </div>
             </div>
 
@@ -168,19 +172,17 @@
     </main>
 
     <script type="module">
-        let apiKey = "";
+        // PRE-LOADED KEY FOR SMOOTH RUNNING
+        const apiKey = "AIzaSyD7nHYEqv_dKPAWgoGbC6Uc4QiT3cJ-OiU"; 
         let currentHorizon = "Intraday";
         const MODEL = "gemini-2.5-flash-preview-09-2025"; 
 
         document.getElementById('activateSystem').onclick = () => {
-            const val = document.getElementById('sessionKey').value.trim();
-            if (val.length > 10) {
-                apiKey = val;
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('mainHeader').classList.remove('blur-sm');
-                document.getElementById('viewAnalyzer').classList.remove('blur-sm');
-                document.getElementById('statusIndicator').classList.replace('bg-slate-500', 'bg-emerald-500');
-            }
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('blur-sm');
+            document.getElementById('viewAnalyzer').classList.remove('blur-sm');
+            document.getElementById('statusIndicator').classList.replace('bg-slate-500', 'bg-emerald-500');
+            document.getElementById('statusText').innerText = "System Online";
         };
 
         window.setHorizon = (val, btn) => {
@@ -193,26 +195,39 @@
             document.getElementById('clock').innerText = new Date().toISOString().split('T')[1].split('.')[0] + ' UTC';
         }, 1000);
 
-        async function apiCall(prompt) {
+        async function apiCallWithRetry(prompt, retries = 5) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
             const sys = "Senior FX Analyst. Provide deep data-rich intelligence. Return ONLY valid JSON.";
 
-            const res = await fetch(url, {
-                method: 'POST',
-                mode: 'cors', // Crucial for modern browser requests
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    systemInstruction: { parts: [{ text: sys }] },
-                    tools: [{ "google_search": {} }]
-                })
-            });
-            
-            if (!res.ok) throw new Error("CORS_OR_KEY_ERROR");
-            const data = await res.json();
-            let text = data.candidates[0].content.parts[0].text;
-            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(text);
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            systemInstruction: { parts: [{ text: sys }] },
+                            tools: [{ "google_search": {} }]
+                        })
+                    });
+                    
+                    if (!res.ok) {
+                        if (res.status === 429) { // Rate limit
+                            await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                            continue;
+                        }
+                        throw new Error(`API_ERROR_${res.status}`);
+                    }
+
+                    const data = await res.json();
+                    let text = data.candidates[0].content.parts[0].text;
+                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    return JSON.parse(text);
+                } catch (e) {
+                    if (i === retries - 1) throw e;
+                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                }
+            }
         }
 
         document.getElementById('executeScan').onclick = async () => {
@@ -227,21 +242,21 @@
             errorDisplay.classList.add('hidden');
             loading.classList.remove('hidden');
             resultsContainer.classList.add('hidden');
-            document.getElementById('statusText').innerText = `SCANNING ${asset} NODES...`;
+            document.getElementById('statusText').innerText = `PARSING ${asset} VECTORS...`;
 
             const prompt = `Perform a high-density institutional analysis for ${asset} (${currentHorizon}). 
-            1. Identify 4 recent real-world market drivers.
-            2. Analyze the economic calendar/news for the next 72 hours. List 3 upcoming catalysts.
-            3. For each upcoming catalyst, explicitly state if it is "Bullish" or "Bearish" risk.
-            4. Provide a final trade direction verdict.
-            Return JSON: { 
+            1. Identify 4 recent real-world market drivers (last 24-48 hours).
+            2. Analyze upcoming high-impact catalysts for the next 72 hours.
+            3. Explicitly categorize catalyst impact as "Bullish Risk" or "Bearish Risk".
+            4. Provide an institutional bias verdict.
+            Return JSON only: { 
                 "recent_drivers": [{"title":"", "logic":"", "impact":"Bullish/Bearish"}], 
                 "upcoming_events": [{"event":"", "time_est":"", "impact_prediction":"Bullish/Bearish", "logic":""}],
                 "verdict":{"direction":"BULLISH/BEARISH", "summary":"", "strategic_plan":""} 
             }`;
 
             try {
-                const result = await apiCall(prompt);
+                const result = await apiCallWithRetry(prompt);
                 
                 display.innerHTML = result.recent_drivers.map(d => `
                     <div class="neo-glass rounded-2xl p-6 border-t-2 ${d.impact.toLowerCase().includes('bull') ? 'border-emerald-500/30' : 'border-rose-500/30'} fade-in">
@@ -271,16 +286,19 @@
                     <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase mb-4">${result.verdict.direction}</h2>
                     <p class="text-lg text-slate-300 font-medium mb-8">"${result.verdict.summary}"</p>
                     <div class="bg-black/40 p-6 rounded-2xl border border-white/5">
-                        <p class="text-[9px] font-black text-emerald-500 uppercase mb-3 mono">Protocol</p>
+                        <p class="text-[9px] font-black text-emerald-500 uppercase mb-3 mono">Institutional Protocol</p>
                         <p class="text-sm text-slate-400">${result.verdict.strategic_plan}</p>
                     </div>
                 `;
 
                 resultsContainer.classList.remove('hidden');
-                document.getElementById('statusText').innerText = "SCAN COMPLETE";
+                document.getElementById('statusText').innerText = "DATA ACQUIRED";
             } catch (e) {
                 errorDisplay.classList.remove('hidden');
-                document.getElementById('statusText').innerText = "TERMINAL HALTED";
+                document.getElementById('errorMessage').innerText = e.message.includes('API_ERROR') 
+                    ? "The API key provided might be invalid or have reached its quota. Please check your Google AI Studio console."
+                    : "Terminal could not establish connection to the neural grid. Attempting reconnection protocols...";
+                document.getElementById('statusText').innerText = "SYSTEM FAILURE";
             } finally {
                 loading.classList.add('hidden');
             }
