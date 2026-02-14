@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REXY | Institutional Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Inter:wght@900&display=swap');
+        
+        :root {
+            --terminal-green: #00ff41;
+            --cyber-blue: #00d2ff;
+            --warning-red: #ff3e3e;
+            --bg-obsidian: #030303;
+        }
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: #d1d5db;
+            font-family: 'JetBrains+Mono', monospace;
+            overflow-x: hidden;
+        }
+
+        .neo-glass {
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        .scanning-line {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--terminal-green), transparent);
+            width: 100%;
+            position: absolute;
+            animation: scan 2.5s infinite linear;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .title-glitch {
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.05em;
+        }
+
+        .tab-btn.active {
+            background: var(--terminal-green);
+            color: black;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        input, select, button { font-family: 'JetBrains+Mono', monospace; }
+        
+        .time-btn.active {
+            background-color: var(--terminal-green);
+            color: black;
+        }
+
+        .scroll-custom::-webkit-scrollbar { width: 4px; }
+        .scroll-custom::-webkit-scrollbar-track { background: transparent; }
+        .scroll-custom::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-2 md:p-6">
+
+    <!-- Header Section -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div class="flex items-center gap-4">
+            <div class="relative w-12 h-12 flex items-center justify-center border-2 border-emerald-500/30 rounded-full">
+                <div class="absolute inset-0 animate-ping bg-emerald-500/10 rounded-full"></div>
+                <span class="text-emerald-500 font-black text-xl">R</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black title-glitch text-white leading-none">REXY<span class="text-emerald-500">.CORE</span></h1>
+                <p class="text-[9px] uppercase tracking-[0.3em] text-slate-500 font-bold mt-1">Institutional Intelligence v2.6 // DEPLOYED</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex bg-white/5 p-1 rounded-xl border border-white/10">
+            <button id="tabAnalyzer" class="tab-btn active text-[10px] font-black px-6 py-2 rounded-lg transition-all uppercase">Market Intel</button>
+            <button id="tabMacro" class="tab-btn text-[10px] font-black px-6 py-2 rounded-lg transition-all uppercase ml-1">Macro Radar</button>
+        </nav>
+
+        <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest px-4 py-2 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
+            High Density Scan // Web Host Ready
+        </div>
+    </header>
+
+    <!-- Main Views -->
+    <main id="viewAnalyzer" class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 fade-in">
+        <aside class="lg:col-span-3 space-y-6">
+            <div class="neo-glass rounded-xl p-5 border-t-2 border-emerald-500/40">
+                <label class="text-[10px] uppercase font-bold text-slate-500 block mb-3">Asset Parameter</label>
+                <select id="assetPair" class="w-full bg-black/50 border border-white/10 rounded p-3 text-sm text-white outline-none focus:border-emerald-500/50 appearance-none mb-6">
+                    <option value="XAU/USD">XAU/USD (Gold)</option>
+                    <option value="EUR/USD">EUR/USD</option>
+                    <option value="GBP/USD">GBP/USD</option>
+                    <option value="USD/JPY">USD/JPY</option>
+                    <option value="AUD/USD">AUD/USD</option>
+                    <option value="BTC/USD">BITCOIN</option>
+                    <option value="DXY">DXY (Dollar Index)</option>
+                </select>
+
+                <label class="text-[10px] uppercase font-bold text-slate-500 block mb-3">Timeline Horizon</label>
+                <div class="grid grid-cols-2 gap-2 mb-6">
+                    <button class="time-btn active text-[10px] p-2 bg-white/5 border border-white/10 font-bold rounded uppercase transition-all" onclick="setHorizon('Intraday', this)">INTRADAY</button>
+                    <button class="time-btn text-[10px] p-2 bg-white/5 border border-white/10 font-bold rounded uppercase transition-all" onclick="setHorizon('Swing', this)">SWING</button>
+                </div>
+
+                <button id="executeScan" class="w-full bg-white text-black font-black py-4 rounded-lg hover:bg-emerald-500 transition-all uppercase text-xs tracking-widest">
+                    Init Intelligence Scan
+                </button>
+            </div>
+            
+            <div class="neo-glass rounded-xl p-5 border-l-4 border-blue-500/50">
+                <h4 class="text-[10px] font-bold uppercase text-blue-400 mb-2">Institutional Protocol</h4>
+                <p class="text-[10px] text-slate-400 leading-relaxed italic">The analyzer uses Real-Time Google Grounding to interpret recent news volatility into actionable bias.</p>
+            </div>
+        </aside>
+
+        <section class="lg:col-span-9 space-y-6">
+            <div id="statusLine" class="neo-glass rounded-lg px-6 py-3 flex justify-between items-center text-[10px] font-bold">
+                <div class="flex items-center gap-2">
+                    <span id="statusIndicator" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-slate-400 uppercase tracking-widest" id="statusText">Terminal Standby</span>
+                </div>
+                <div class="text-slate-600 font-mono" id="clock">00:00:00 UTC</div>
+            </div>
+
+            <div id="loadingState" class="hidden relative h-64 neo-glass rounded-2xl overflow-hidden flex items-center justify-center">
+                <div class="scanning-line"></div>
+                <div class="flex flex-col items-center">
+                    <p class="text-emerald-500 font-black animate-pulse tracking-[0.5em] uppercase text-xs">Parsing Global Data Sets</p>
+                    <p class="text-[9px] text-slate-600 mt-2 uppercase">Connecting to Google Intelligence Grid</p>
+                </div>
+            </div>
+
+            <!-- Output Grid -->
+            <div id="outputDisplay" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 hidden"></div>
+            
+            <!-- Elaborated Verdict Section -->
+            <div id="masterVerdict" class="neo-glass rounded-2xl p-8 border-l-8 border-emerald-500 hidden">
+                <!-- Injected content -->
+            </div>
+        </section>
+    </main>
+
+    <main id="viewMacro" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 fade-in">
+        <aside class="lg:col-span-4 space-y-6">
+            <div class="neo-glass rounded-xl p-8 border-t-2 border-amber-500/40">
+                <h2 class="text-xl font-black text-white italic mb-2 uppercase">Policy <span class="text-amber-500">& War</span> Radar</h2>
+                <p class="text-[10px] text-slate-500 mb-8 leading-relaxed">Geopolitical tracking for high-impact macro shifts.</p>
+                <button id="executeMacroScan" class="w-full bg-amber-500 text-black font-black py-4 rounded-lg hover:bg-amber-400 transition-all uppercase text-xs tracking-widest">
+                    Scan Global Headlines
+                </button>
+            </div>
+            
+            <div id="riskMeter" class="neo-glass rounded-xl p-6 hidden">
+                <p class="text-[10px] font-black text-slate-500 uppercase mb-4">Global Risk Sentiment</p>
+                <div class="h-4 w-full bg-white/5 rounded-full overflow-hidden flex">
+                    <div id="riskBar" class="h-full bg-amber-500 transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-2 text-[8px] font-black uppercase">
+                    <span class="text-emerald-500">Risk-On</span>
+                    <span id="riskLabel" class="text-amber-500 text-center flex-1">Initializing</span>
+                    <span class="text-rose-500">Risk-Off</span>
+                </div>
+            </div>
+        </aside>
+
+        <section class="lg:col-span-8 space-y-6">
+            <div id="macroLoading" class="hidden relative h-32 neo-glass rounded-2xl overflow-hidden flex items-center justify-center">
+                <div class="scanning-line bg-amber-500"></div>
+                <p class="text-amber-500 font-black animate-pulse tracking-[0.5em] uppercase text-[10px]">Filtering Geopolitical Cables</p>
+            </div>
+            <div id="macroResults" class="space-y-6"></div>
+        </section>
+    </main>
+
+    <script type="module">
+        // API KEY OBFUSCATION (Basic protection for static hosting)
+        const _p1 = "AIzaSyDQE-0c1Dcly";
+        const _p2 = "f18MCKAu_JUlToMtsiGpZM";
+        const _p3 = "M";
+        const apiKey = _p1 + _p2 + _p3;
+
+        let currentHorizon = "Intraday";
+        const MODEL = "gemini-2.5-flash-preview-09-2025";
+
+        // DOM Elements
+        const tabAnalyzer = document.getElementById('tabAnalyzer');
+        const tabMacro = document.getElementById('tabMacro');
+        const viewAnalyzer = document.getElementById('viewAnalyzer');
+        const viewMacro = document.getElementById('viewMacro');
+        const executeScan = document.getElementById('executeScan');
+        const executeMacroScan = document.getElementById('executeMacroScan');
+
+        // Navigation Logic
+        tabAnalyzer.onclick = () => {
+            tabAnalyzer.classList.add('active');
+            tabMacro.classList.remove('active');
+            viewAnalyzer.classList.remove('hidden');
+            viewMacro.classList.add('hidden');
+        };
+
+        tabMacro.onclick = () => {
+            tabMacro.classList.add('active');
+            tabAnalyzer.classList.remove('active');
+            viewMacro.classList.remove('hidden');
+            viewAnalyzer.classList.add('hidden');
+        };
+
+        window.setHorizon = (val, btn) => {
+            currentHorizon = val;
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        };
+
+        // Real-time Clock
+        setInterval(() => {
+            const clockEl = document.getElementById('clock');
+            if (clockEl) {
+                clockEl.innerText = new Date().toISOString().split('T')[1].split('.')[0] + ' UTC';
+            }
+        }, 1000);
+
+        async function apiCall(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+            const systemInstructions = "You are a senior institutional Forex analyst. Provide extensive, elaborated, and data-dense intelligence. Use Google Search to find current facts. Always return valid JSON only.";
+
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            systemInstruction: { parts: [{ text: systemInstructions }] },
+                            tools: [{ "google_search": {} }]
+                        })
+                    });
+                    
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    
+                    const data = await res.json();
+                    let text = data.candidates[0].content.parts[0].text;
+                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    return JSON.parse(text);
+                } catch (e) {
+                    if (i === 4) throw e;
+                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                }
+            }
+        }
+
+        executeScan.onclick = async () => {
+            const asset = document.getElementById('assetPair').value;
+            const loading = document.getElementById('loadingState');
+            const display = document.getElementById('outputDisplay');
+            const verdict = document.getElementById('masterVerdict');
+            const statusText = document.getElementById('statusText');
+
+            statusText.textContent = `DEEP ANALYZING ${asset}...`;
+            loading.classList.remove('hidden');
+            display.classList.add('hidden');
+            verdict.classList.add('hidden');
+
+            const prompt = `Perform an EXHAUSTIVE institutional analysis for ${asset} on a ${currentHorizon} basis. 
+            Step 1: Use Google Search to find at least 6-8 distinct recent drivers (Fundamental, Technical, and Sentiment).
+            Step 2: For EACH driver, explain the 'Institutional Logic' in detail (minimum 2 sentences each).
+            Step 3: Provide a 'Liquidity Map' of where major orders are likely sitting.
+            Step 4: Elaborate on the final verdict with a strategic gameplan.
+            
+            Return ONLY a JSON object: 
+            {
+                "recent_drivers": [
+                    {"title": "Headline", "logic": "Explanation", "impact": "Bullish/Bearish", "source_type": "Data/Bank/Sentiment"}
+                ],
+                "liquidity_zones": ["Zone A", "Zone B"],
+                "verdict": {
+                    "direction": "Bullish/Bearish", 
+                    "summary": "3+ sentence summary", 
+                    "trigger_levels": "Key price points",
+                    "strategic_plan": "Specific action steps"
+                }
+            }`;
+
+            try {
+                const result = await apiCall(prompt);
+                
+                display.innerHTML = result.recent_drivers.map(d => `
+                    <div class="neo-glass rounded-xl p-5 border-t-2 ${d.impact.toLowerCase().includes('bull') ? 'border-emerald-500/30' : (d.impact.toLowerCase().includes('bear') ? 'border-rose-500/30' : 'border-slate-500/30')} fade-in">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[8px] font-black ${d.impact.toLowerCase().includes('bull') ? 'text-emerald-500' : (d.impact.toLowerCase().includes('bear') ? 'text-rose-500' : 'text-slate-400')} uppercase px-2 py-0.5 bg-white/5 rounded">${d.impact}</span>
+                            <span class="text-[7px] text-slate-600 font-bold uppercase tracking-widest">${d.source_type}</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-white mb-2 leading-tight">${d.title}</h4>
+                        <p class="text-[10px] text-slate-400 font-light leading-relaxed">${d.logic}</p>
+                    </div>
+                `).join('');
+                
+                const vColor = result.verdict.direction.toLowerCase().includes('bull') ? 'text-emerald-500' : 'text-rose-500';
+                const vBorder = result.verdict.direction.toLowerCase().includes('bull') ? 'border-emerald-500' : 'border-rose-500';
+                
+                verdict.className = `neo-glass rounded-2xl p-8 border-l-8 ${vBorder} block fade-in`;
+                verdict.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2">
+                            <h2 class="text-5xl font-black ${vColor} italic uppercase mb-2 tracking-tighter">${result.verdict.direction} Outlook</h2>
+                            <p class="text-sm text-slate-300 italic mb-6 leading-relaxed">"${result.verdict.summary}"</p>
+                            <div class="bg-white/5 rounded-xl p-6 border border-white/5">
+                                <h5 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Tactical Execution Plan</h5>
+                                <p class="text-xs text-slate-300 leading-relaxed font-mono">${result.verdict.strategic_plan}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <h5 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Institutional Liquidity</h5>
+                                <div class="space-y-2">
+                                    ${result.liquidity_zones.map(z => `<div class="bg-black/40 border border-white/5 p-3 rounded text-[10px] font-bold text-white mono">${z}</div>`).join('')}
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Key Triggers</h5>
+                                <p class="text-sm font-black text-white italic">${result.verdict.trigger_levels}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                display.classList.remove('hidden');
+                verdict.classList.remove('hidden');
+                statusText.textContent = "DEEP SCAN COMPLETE";
+            } catch (e) {
+                statusText.textContent = "TERMINAL ERROR";
+                console.error(e);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        };
+
+        executeMacroScan.onclick = async () => {
+            const macroLoading = document.getElementById('macroLoading');
+            const macroResults = document.getElementById('macroResults');
+            const riskMeter = document.getElementById('riskMeter');
+            
+            macroLoading.classList.remove('hidden');
+            macroResults.innerHTML = "";
+
+            const prompt = `Search for major geopolitical events from the last 24-48 hours. Analyze risk sentiment.
+            Return ONLY JSON:
+            {
+                "sentiment_score": 0-100,
+                "sentiment_label": "Label",
+                "headlines": [{"category": "Tag", "title": "Headline", "impact": "Reasoning", "urgency": "High/Med/Low"}]
+            }`;
+
+            try {
+                const result = await apiCall(prompt);
+                riskMeter.classList.remove('hidden');
+                document.getElementById('riskBar').style.width = `${result.sentiment_score}%`;
+                document.getElementById('riskLabel').textContent = result.sentiment_label;
+
+                macroResults.innerHTML = result.headlines.map(h => `
+                    <div class="neo-glass rounded-xl p-6 border-l-4 ${h.urgency.toLowerCase() === 'high' ? 'border-amber-500' : 'border-slate-700'} fade-in">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] font-black text-amber-500 uppercase tracking-widest">${h.category}</span>
+                            <span class="text-[8px] font-bold text-slate-600 uppercase">${h.urgency} Urgency</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-3 italic">${h.title}</h3>
+                        <p class="text-xs text-slate-400 italic leading-relaxed">${h.impact}</p>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            } finally {
+                macroLoading.classList.add('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
