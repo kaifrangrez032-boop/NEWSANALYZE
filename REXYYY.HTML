@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REXY | Institutional Intelligence</title>
+    <title>REXY | Institutional Intelligence Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Inter:wght@400;500;700;900&display=swap');
         
         :root {
             --terminal-green: #00ff41;
-            --cyber-blue: #00d2ff;
-            --warning-red: #ff3e3e;
             --bg-obsidian: #030303;
         }
 
@@ -44,12 +42,6 @@
             100% { top: 100%; }
         }
 
-        .title-glitch {
-            font-family: 'Inter', sans-serif;
-            letter-spacing: -0.05em;
-            font-weight: 900;
-        }
-
         .tab-btn.active {
             background: var(--terminal-green);
             color: black;
@@ -57,46 +49,45 @@
         }
 
         .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Typography & Readability Improvements */
-        .analysis-card h4 {
-            font-family: 'Inter', sans-serif;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
-        }
-
-        .analysis-card p {
-            line-height: 1.7;
-            font-size: 0.875rem;
-            color: #9ca3af;
-        }
-
-        .verdict-text {
-            line-height: 1.6;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .time-btn.active {
             background-color: var(--terminal-green);
             color: black;
         }
 
-        .scroll-custom::-webkit-scrollbar { width: 4px; }
-        .scroll-custom::-webkit-scrollbar-track { background: transparent; }
-        .scroll-custom::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .impact-pill {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4 md:p-8">
 
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
+        <div class="neo-glass p-8 rounded-2xl max-w-md w-full border-t-2 border-terminal-green">
+            <h2 class="text-2xl font-black text-white mb-2 tracking-tighter">SYSTEM LOGIN</h2>
+            <p class="text-xs text-slate-400 mb-6 leading-relaxed">Please enter your Gemini API Key. Your key is used locally to power the institutional AI engine.</p>
+            <input type="password" id="sessionKey" placeholder="Paste API Key (AIza...)" class="w-full bg-black/50 border border-white/20 rounded-lg p-4 text-white mono text-xs mb-4 outline-none focus:border-terminal-green">
+            <button id="activateSystem" class="w-full bg-terminal-green text-black font-black py-4 rounded-lg uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all">
+                Initialize Terminal
+            </button>
+        </div>
+    </div>
+
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 blur-sm" id="mainHeader">
         <div class="flex items-center gap-5">
             <div class="relative w-14 h-14 flex items-center justify-center border-2 border-emerald-500/30 rounded-full">
                 <div class="absolute inset-0 animate-ping bg-emerald-500/10 rounded-full"></div>
                 <span class="text-emerald-500 font-black text-2xl mono">R</span>
             </div>
             <div>
-                <h1 class="text-3xl title-glitch text-white leading-none">REXY<span class="text-emerald-500">.CORE</span></h1>
-                <p class="text-[10px] uppercase tracking-[0.4em] text-emerald-500/60 font-bold mt-2 mono">Institutional Intelligence v3.5 // High Density Mode</p>
+                <h1 class="text-3xl font-black text-white leading-none tracking-tighter">REXY<span class="text-emerald-500">.CORE</span></h1>
+                <p class="text-[10px] uppercase tracking-[0.4em] text-emerald-500/60 font-bold mt-2 mono">Institutional Intelligence v4.2</p>
             </div>
         </div>
 
@@ -104,18 +95,13 @@
             <button id="tabAnalyzer" class="tab-btn active text-[11px] font-black px-8 py-3 rounded-xl transition-all uppercase mono">Market Intel</button>
             <button id="tabMacro" class="tab-btn text-[11px] font-black px-8 py-3 rounded-xl transition-all uppercase ml-1 mono">Macro Radar</button>
         </nav>
-
-        <div id="connectionTag" class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest px-5 py-2.5 bg-emerald-500/5 border border-emerald-500/20 rounded-xl mono">
-            System Online
-        </div>
     </header>
 
-    <main id="viewAnalyzer" class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 fade-in">
-        <!-- Input Panel -->
+    <main id="viewAnalyzer" class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 fade-in blur-sm">
         <aside class="lg:col-span-3 space-y-6">
-            <div class="neo-glass rounded-2xl p-6 border-t-2 border-emerald-500/40 sticky top-8">
+            <div class="neo-glass rounded-2xl p-6 border-t-2 border-emerald-500/40">
                 <label class="text-[10px] uppercase font-black text-slate-500 block mb-4 tracking-widest mono">Select Asset</label>
-                <select id="assetPair" class="w-full bg-black/60 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:border-emerald-500/50 appearance-none mb-8 mono">
+                <select id="assetPair" class="w-full bg-black/60 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:border-emerald-500 appearance-none mb-8 mono">
                     <option value="XAU/USD">XAU/USD (Gold)</option>
                     <option value="EUR/USD">EUR/USD</option>
                     <option value="GBP/USD">GBP/USD</option>
@@ -124,83 +110,70 @@
                     <option value="DXY">DXY (Dollar Index)</option>
                 </select>
 
-                <label class="text-[10px] uppercase font-black text-slate-500 block mb-4 tracking-widest mono">Time Horizon</label>
+                <label class="text-[10px] uppercase font-black text-slate-500 block mb-4 tracking-widest mono">Strategy Outlook</label>
                 <div class="grid grid-cols-2 gap-3 mb-8">
                     <button class="time-btn active text-[10px] py-3 bg-white/5 border border-white/10 font-bold rounded-xl uppercase transition-all mono" onclick="setHorizon('Intraday', this)">Intraday</button>
                     <button class="time-btn text-[10px] py-3 bg-white/5 border border-white/10 font-bold rounded-xl uppercase transition-all mono" onclick="setHorizon('Swing', this)">Swing</button>
                 </div>
 
-                <button id="executeScan" class="w-full bg-white text-black font-black py-5 rounded-xl hover:bg-emerald-500 hover:scale-[1.02] active:scale-95 transition-all uppercase text-xs tracking-[0.2em] mono shadow-lg shadow-white/5">
-                    Start Intel Scan
+                <button id="executeScan" class="w-full bg-white text-black font-black py-5 rounded-xl hover:bg-emerald-500 transition-all uppercase text-xs tracking-widest mono">
+                    Deep Intelligence Scan
                 </button>
             </div>
         </aside>
 
-        <!-- Output Panel -->
         <section class="lg:col-span-9 space-y-8">
             <div id="statusLine" class="neo-glass rounded-2xl px-8 py-4 flex justify-between items-center text-[11px] font-bold mono">
                 <div class="flex items-center gap-3">
-                    <span id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-slate-400 uppercase tracking-widest" id="statusText">Terminal Standby</span>
+                    <span id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                    <span class="text-slate-400 uppercase tracking-widest" id="statusText">System Standby</span>
                 </div>
-                <div class="text-slate-500 font-mono tracking-widest" id="clock">00:00:00 UTC</div>
+                <div class="text-slate-500" id="clock">00:00:00 UTC</div>
             </div>
 
-            <!-- Loading State -->
-            <div id="loadingState" class="hidden relative h-80 neo-glass rounded-[2rem] overflow-hidden flex items-center justify-center">
+            <div id="loadingState" class="hidden relative h-64 neo-glass rounded-[2rem] overflow-hidden flex items-center justify-center">
                 <div class="scanning-line"></div>
                 <div class="text-center">
-                    <p class="text-emerald-500 font-black animate-pulse tracking-[0.6em] uppercase text-xs mono">Broadcasting Global Query</p>
-                    <p class="text-[10px] text-slate-500 mt-4 mono">Searching for 5-8 Primary Institutional Signals...</p>
+                    <p class="text-emerald-500 font-black animate-pulse tracking-[0.5em] uppercase text-xs mono">Broadcasting Global Query</p>
+                    <p class="text-[9px] text-slate-600 mt-2 uppercase tracking-widest">Analyzing Institutional Footprint & News Cycles</p>
                 </div>
             </div>
 
-            <!-- Analysis Grid - Updated to 3 columns on large screens for density -->
-            <div id="outputDisplay" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 hidden"></div>
+            <!-- Analysis Sections -->
+            <div id="resultsContainer" class="space-y-8 hidden">
+                <!-- Recent Drivers -->
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 mono">Recent Market Drivers</h3>
+                    <div id="outputDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>
 
-            <!-- Final Narrative -->
-            <div id="masterVerdict" class="neo-glass rounded-[2.5rem] p-10 border-l-[12px] border-emerald-500 hidden"></div>
-        </section>
-    </main>
+                <!-- Upcoming News Radar -->
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 mono">Upcoming Catalyst Radar</h3>
+                    <div id="upcomingDisplay" class="grid grid-cols-1 gap-4"></div>
+                </div>
 
-    <!-- Macro View -->
-    <main id="viewMacro" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 fade-in">
-        <aside class="lg:col-span-4">
-            <div class="neo-glass rounded-2xl p-8 border-t-2 border-amber-500/40">
-                <h2 class="text-2xl font-black text-white italic mb-4 uppercase">Geopolitical <span class="text-amber-500">Radar</span></h2>
-                <p class="text-xs text-slate-400 mb-10 leading-relaxed font-medium">Deep scanning 48-hour geopolitical cycles for liquidity shifts.</p>
-                <button id="executeMacroScan" class="w-full bg-amber-500 text-black font-black py-5 rounded-xl hover:bg-amber-400 transition-all uppercase text-xs tracking-widest mono">
-                    Run High-Density Scan
-                </button>
+                <!-- Final Verdict -->
+                <div id="masterVerdict" class="neo-glass rounded-[2.5rem] p-10 border-l-[12px] border-emerald-500"></div>
             </div>
-        </aside>
-        <section class="lg:col-span-8 space-y-6">
-            <div id="macroResults" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </section>
     </main>
 
     <script type="module">
-        const apiKey = ""; // Empty string for environment handling
-
+        let apiKey = "";
         let currentHorizon = "Intraday";
-        const MODEL = "gemini-2.5-flash-preview-09-2025";
+        const MODEL = "gemini-2.5-flash-preview-09-2025"; 
 
-        const tabAnalyzer = document.getElementById('tabAnalyzer');
-        const tabMacro = document.getElementById('tabMacro');
-        const viewAnalyzer = document.getElementById('viewAnalyzer');
-        const viewMacro = document.getElementById('viewMacro');
-        const executeScan = document.getElementById('executeScan');
-        const statusText = document.getElementById('statusText');
-        const statusIndicator = document.getElementById('statusIndicator');
-
-        // Navigation
-        tabAnalyzer.onclick = () => {
-            tabAnalyzer.classList.add('active'); tabMacro.classList.remove('active');
-            viewAnalyzer.classList.remove('hidden'); viewMacro.classList.add('hidden');
-        };
-        tabMacro.onclick = () => {
-            tabMacro.classList.add('active'); tabAnalyzer.classList.remove('active');
-            viewMacro.classList.remove('hidden'); viewAnalyzer.classList.add('hidden');
+        // Auth Logic
+        document.getElementById('activateSystem').onclick = () => {
+            const val = document.getElementById('sessionKey').value.trim();
+            if (val.length > 20) {
+                apiKey = val;
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('mainHeader').classList.remove('blur-sm');
+                document.getElementById('viewAnalyzer').classList.remove('blur-sm');
+                document.getElementById('statusIndicator').classList.replace('bg-slate-500', 'bg-emerald-500');
+            }
         };
 
         window.setHorizon = (val, btn) => {
@@ -210,120 +183,104 @@
         };
 
         setInterval(() => {
-            const el = document.getElementById('clock');
-            if (el) el.innerText = new Date().toISOString().split('T')[1].split('.')[0] + ' UTC';
+            document.getElementById('clock').innerText = new Date().toISOString().split('T')[1].split('.')[0] + ' UTC';
         }, 1000);
 
         async function apiCall(prompt) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
-            const sys = "You are a senior Institutional Forex analyst. You must provide at least 5 to 8 distinct, high-quality analysis points for every request. Be precise and verbose. Return ONLY JSON.";
+            const sys = "Senior FX Analyst. Provide deep data-rich intelligence. Return ONLY valid JSON.";
 
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
-                            systemInstruction: { parts: [{ text: sys }] },
-                            tools: [{ "google_search": {} }]
-                        })
-                    });
-                    
-                    const data = await res.json();
-                    let text = data.candidates[0].content.parts[0].text;
-                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    return JSON.parse(text);
-                } catch (e) {
-                    if (i === 4) throw e;
-                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-                }
-            }
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    systemInstruction: { parts: [{ text: sys }] },
+                    tools: [{ "google_search": {} }]
+                })
+            });
+            
+            if (!res.ok) throw new Error("API Connection Error");
+            const data = await res.json();
+            let text = data.candidates[0].content.parts[0].text;
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(text);
         }
 
-        executeScan.onclick = async () => {
+        document.getElementById('executeScan').onclick = async () => {
             const asset = document.getElementById('assetPair').value;
             const loading = document.getElementById('loadingState');
+            const resultsContainer = document.getElementById('resultsContainer');
             const display = document.getElementById('outputDisplay');
+            const upcomingDisplay = document.getElementById('upcomingDisplay');
             const verdict = document.getElementById('masterVerdict');
 
-            statusText.textContent = `DEEP SCANNING ${asset}...`;
-            statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse";
             loading.classList.remove('hidden');
-            display.classList.add('hidden');
-            verdict.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+            document.getElementById('statusText').innerText = `ANALYZING ${asset} NODES...`;
 
-            // Modified prompt to force more points
-            const prompt = `Perform a HIGH-DENSITY institutional scan for ${asset} on a ${currentHorizon} outlook. 
-            Search for all recent high-impact news, COT report data, yield curve movements, and sentiment shifts from the last 24 hours.
+            const prompt = `Conduct a high-density institutional analysis for ${asset} (${currentHorizon} perspective). 
             
-            IMPORTANT: Provide exactly 6 to 8 unique 'recent_drivers' in the JSON array. Each must have a strong logic explanation.
-            
-            Return JSON: { 
-                "recent_drivers": [{"title":"", "logic":"", "impact":""}], 
-                "verdict":{"direction":"", "summary":"", "strategic_plan":""} 
+            PART 1: Identify 4 most critical recent market drivers (real news/data).
+            PART 2: Analyze the economic calendar for the next 48-72 hours. Identify 3 major upcoming catalysts and explain if they represent a Bullish or Bearish RISK for this specific pair.
+            PART 3: Provide a Master Verdict.
+
+            Return JSON exactly: { 
+                "recent_drivers": [{"title":"", "logic":"", "impact":"Bullish/Bearish"}], 
+                "upcoming_events": [{"event":"", "time_est":"", "impact_prediction":"Bullish/Bearish", "logic":""}],
+                "verdict":{"direction":"BULLISH/BEARISH", "summary":"", "strategic_plan":""} 
             }`;
 
             try {
                 const result = await apiCall(prompt);
                 
-                display.innerHTML = result.recent_drivers.map(d => {
-                    const isBull = d.impact.toLowerCase().includes('bull');
-                    return `
-                    <div class="analysis-card neo-glass rounded-2xl p-6 border-t-2 ${isBull ? 'border-emerald-500/40' : 'border-rose-500/40'} fade-in">
+                // Render Drivers
+                display.innerHTML = result.recent_drivers.map(d => `
+                    <div class="neo-glass rounded-2xl p-6 border-t-2 ${d.impact.toLowerCase().includes('bull') ? 'border-emerald-500/30' : 'border-rose-500/30'} fade-in">
                         <div class="flex justify-between items-start mb-4">
-                            <span class="px-2 py-1 rounded bg-white/5 text-[9px] font-black uppercase tracking-tighter mono ${isBull ? 'text-emerald-400' : 'text-rose-400'}">${d.impact}</span>
+                            <h4 class="text-md font-bold text-white tracking-tight">${d.title}</h4>
+                            <span class="impact-pill ${d.impact.toLowerCase().includes('bull') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'} mono">${d.impact}</span>
                         </div>
-                        <h4 class="text-lg font-bold text-white mb-3">${d.title}</h4>
-                        <p class="font-medium">${d.logic}</p>
+                        <p class="text-xs text-slate-400 leading-relaxed font-medium">${d.logic}</p>
                     </div>
-                `}).join('');
+                `).join('');
+
+                // Render Upcoming News
+                upcomingDisplay.innerHTML = result.upcoming_events.map(e => `
+                    <div class="neo-glass rounded-xl p-5 border-l-2 ${e.impact_prediction.toLowerCase().includes('bull') ? 'border-emerald-500' : 'border-rose-500'} flex flex-col md:flex-row gap-4 items-start md:items-center">
+                        <div class="min-w-[120px]">
+                            <p class="text-[9px] font-black text-slate-500 uppercase mono">${e.time_est}</p>
+                            <p class="text-xs font-bold text-white uppercase">${e.event}</p>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-400 leading-relaxed"><span class="font-black text-white uppercase mr-2">[${e.impact_prediction} RISK]</span> ${e.logic}</p>
+                        </div>
+                    </div>
+                `).join('');
                 
-                const isBull = result.verdict.direction.toLowerCase().includes('bull');
+                // Render Verdict
+                const isBull = result.verdict.direction.toUpperCase().includes('BULL');
                 verdict.className = `neo-glass rounded-[2.5rem] p-10 border-l-[12px] ${isBull ? 'border-emerald-500' : 'border-rose-500'} block fade-in`;
                 verdict.innerHTML = `
-                    <div class="flex items-center gap-4 mb-6">
-                        <span class="text-[10px] font-black px-4 py-1.5 rounded-full bg-white/5 mono uppercase ${isBull ? 'text-emerald-500' : 'text-rose-500'}">${result.verdict.direction} Narrative</span>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-2 h-2 rounded-full ${isBull ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
+                        <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase">${result.verdict.direction}</h2>
                     </div>
-                    <h2 class="text-5xl font-black ${isBull ? 'text-white' : 'text-white'} italic uppercase mb-6 tracking-tight">${result.verdict.direction} Expansion</h2>
-                    <p class="text-lg text-slate-300 verdict-text font-medium mb-8">"${result.verdict.summary}"</p>
+                    <p class="text-lg text-slate-300 font-medium mb-8 leading-relaxed">"${result.verdict.summary}"</p>
                     <div class="bg-black/40 p-6 rounded-2xl border border-white/5">
-                        <p class="text-[10px] font-black text-blue-400 uppercase mb-3 tracking-[0.2em] mono">Institutional Strategic Plan</p>
+                        <p class="text-[9px] font-black text-emerald-500 uppercase mb-3 tracking-[0.2em] mono">Execution Protocol</p>
                         <p class="text-sm text-slate-400 font-medium leading-relaxed">${result.verdict.strategic_plan}</p>
                     </div>
                 `;
 
-                display.classList.remove('hidden');
-                verdict.classList.remove('hidden');
-                statusText.textContent = "DEEP SCAN COMPLETE";
-                statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                resultsContainer.classList.remove('hidden');
+                document.getElementById('statusText').innerText = "SCAN COMPLETE";
             } catch (e) {
-                statusText.textContent = "TERMINAL ERROR";
-                statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
                 console.error(e);
+                alert("Terminal Error: Check console for API log.");
             } finally {
                 loading.classList.add('hidden');
             }
-        };
-
-        // Macro Logic
-        document.getElementById('executeMacroScan').onclick = async () => {
-            const results = document.getElementById('macroResults');
-            results.innerHTML = `<div class="col-span-full neo-glass p-12 rounded-2xl text-center animate-pulse mono text-amber-500 uppercase tracking-widest text-xs">Parsing Global Political Cables...</div>`;
-            
-            try {
-                const res = await apiCall("Search 24h geopolitical news affecting global market sentiment. Return at least 6 unique headlines. JSON format: { headlines:[{title:'', impact:'', urgency:''}] }");
-                results.innerHTML = res.headlines.map(h => `
-                    <div class="neo-glass rounded-2xl p-7 border-l-4 ${h.urgency === 'High' ? 'border-amber-500' : 'border-slate-700'} fade-in">
-                        <div class="flex justify-between mb-2">
-                            <span class="text-[9px] font-black text-amber-500 uppercase tracking-widest mono">${h.urgency} Priority</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-white mb-3 leading-tight">${h.title}</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed font-medium">${h.impact}</p>
-                    </div>
-                `).join('');
-            } catch(e) { console.error(e); results.innerHTML = ""; }
         };
     </script>
 </body>
